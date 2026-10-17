@@ -1,0 +1,19 @@
+{
+  "id": "row-your-boat",
+  "title": "Row, Row, Row Your Boat",
+  "language": "en-IN",
+  "source": "public domain (traditional nursery rhyme, 19th century)",
+  "tempo_bpm": 100,
+  "lines": [
+    "Row, row, row your boat,",
+    "Gently down the stream.",
+    "Merrily, merrily, merrily, merrily,",
+    "Life is but a dream."
+  ],
+  "notes": [
+    "C4 C4 C4:0.75 D4:0.25 E4:2",
+    "E4:0.75 D4:0.25 E4:0.75 F4:0.25 G4:2",
+    "C5:0.33 C5:0.33 C5:0.33 G4:0.33 G4:0.33 G4:0.33 E4:0.33 E4:0.33 E4:0.33 C4:0.33 C4:0.33 C4:0.33",
+    "G4:0.75 F4:0.25 E4:0.75 D4:0.25 C4:2"
+  ]
+}

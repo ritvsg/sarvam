@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live Interpreter</title>
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header>
+  <h1>Live interpreter</h1>
+  <span id="mockBadge" class="badge" hidden>MOCK MODE: no Sarvam key, canned output</span>
+</header>
+
+<main>
+  <section class="card">
+    <h2>1. Join a room</h2>
+    <div class="row">
+      <label>Room <input id="room" size="10" autocomplete="off"></label>
+      <label>I am
+        <select id="role"><option value="A">Person A</option><option value="B">Person B</option></select>
+      </label>
+      <label>I speak <select id="mine"></select></label>
+      <label>They speak <select id="theirs"></select></label>
+      <button id="join">Join</button>
+    </div>
+    <p id="peerStatus" class="meta">Not joined. Without a partner, translations play on this device (solo mode).</p>
+    <p id="share" class="meta" hidden></p>
+  </section>
+
+  <section class="card">
+    <h2>2. Talk</h2>
+    <button id="mic" class="mic">Start talking</button>
+    <div class="level"><div id="levelBar"></div></div>
+    <label class="check"><input type="checkbox" id="streaming" checked> Interpret on pauses (segment streaming: each phrase is translated as soon as you pause)</label>
+    <label class="check"><input type="checkbox" id="toneAware"> Tone-aware translation (Sarvam-105B gets your measured delivery; slower)</label>
+    <label class="check"><input type="checkbox" id="readback" checked> Read-back check (translates it back so you see what they heard; one extra call, never delays them)</label>
+    <label class="check"><input type="checkbox" id="judge"> Also ask Sarvam-105B to judge the translation (slower, more credits)</label>
+    <label class="stack">Names and terms to get right (one per line; optional <code>term =&gt; rendering</code>)
+      <textarea id="glossary" rows="3" placeholder="Dr. Rao&#10;metformin"></textarea>
+    </label>
+    <div class="row typed">
+      <input id="typed" size="34" placeholder="Or type a message instead of speaking" autocomplete="off">
+      <button id="typedSend" class="ghost">Send</button>
+    </div>
+    <p id="status" class="meta"></p>
+  </section>
+
+  <section class="card" id="song">
+    <h2>Song: hum it, pick it, hear it sung in another language</h2>
+    <p class="meta">Hum or sing the first few lines. I list the songs it could be, you pick one, say or tap a language, and it comes back sung-style in that language (and in your cloned voice, if you made one). In a room, it goes to your partner in their language.</p>
+    <div class="row">
+      <button id="songRec">Hum or sing</button>
+      <label class="check inline"><input type="checkbox" id="spoken"> Ask me out loud</label>
+    </div>
+    <div class="level"><div id="songLevel"></div></div>
+    <p id="songStatus" class="meta"></p>
+    <div id="songPick" hidden>
+      <p id="songHeard" class="meta"></p>
+      <div id="songCands" class="cands"></div>
+      <label class="stack">Lyrics, one line per phrase (fix anything I misheard)
+        <textarea id="lyrics" rows="4"></textarea>
+      </label>
+      <p class="meta">Language to sing it in:</p>
+      <div id="songLangs" class="langs"></div>
+      <div class="row typed"><button id="songSay" class="ghost">Say the language</button><button id="songSave" class="ghost">Save to my songs</button></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>3. Speak in your own voice (optional, beta)</h2>
+    <p class="meta">Record about 12 seconds of yourself in your own language. Clone only your own voice. The clip is sent to Sarvam's voice-cloning API.</p>
+    <div class="row">
+      <button id="recordVoice">Record 12 s reference</button>
+      <button id="clearVoice" class="ghost" hidden>Delete my voice</button>
+    </div>
+    <p id="voiceStatus" class="meta">No cloned voice. Stock voices are used.</p>
+  </section>
+
+  <section id="log" aria-live="polite"></section>
+
+  <section class="card">
+    <h2>Methods and papers behind this</h2>
+    <ul class="papers">
+      <li><a href="https://arxiv.org/abs/2608.19515">Hear2Act (Aug 2026)</a>: audio LLMs barely use prosody unless it is written down as explicit state. Used for the <b>tone card</b> shown under each message.</li>
+      <li><a href="https://arxiv.org/abs/2603.16924">SimulU</a>, <a href="https://arxiv.org/abs/2602.11072">simultaneous S2ST without aligned data</a>, <a href="https://arxiv.org/abs/2406.03049">StreamSpeech</a>: commit translation while the speaker is still talking. This app only borrows the idea (pause-triggered segments); it does not use those models.</li>
+      <li><b>Numbers guard:</b> speech-translation models are weakest on names and numbers (<a href="https://arxiv.org/abs/2210.11981">Gaido et al.</a>, <a href="https://arxiv.org/pdf/2312.05187">Seamless</a>). Every message shows whether the same numbers were said and translated, with native digits (५०, ௫௦) normalized.</li>
+      <li><b>Read-back check:</b> <a href="https://arxiv.org/abs/2310.16924">in a physician study, backtranslation helped catch more clinically harmful MT errors</a> than quality scores alone, and <a href="https://arxiv.org/abs/2605.28227">current speech-translation metrics miss prosody and gender agreement</a>, so the speaker gets to see what was heard.</li>
+      <li><b>Evidence-gated glossary:</b> <a href="https://arxiv.org/abs/2607.17766">EGTA (Jul 2026)</a> injects only terms with evidence in the current stream, and <a href="https://arxiv.org/html/2610.08831v1">entity-aware metrics</a> use fuzzy, alignment-free entity matching. Your terms bias Saaras and are enforced only when they are actually said.</li>
+      <li><b>Song mode:</b> lyric lines are translated to the melody's note count with a measure-and-retry loop, as in <a href="https://arxiv.org/abs/2505.18614">MAVL / SylAVL-CoT (EMNLP 2025)</a> (syllable constraints), and hums are matched to known tunes by pitch-contour warping, the classic baseline that <a href="https://arxiv.org/abs/2410.20352">learned hum embeddings</a> improve on. Sung lyrics are harder to recognize than speech (<a href="https://arxiv.org/abs/2605.04613">VocalParse, 2026</a>), hence the editable lyrics box. The "singing" is speech retimed onto the tune, not a trained singing voice.</li>
+      <li><a href="https://arxiv.org/abs/2601.11103">AI Twin (CHI 2026)</a>: hearing speech back in your own voice was more motivating. Basis for the optional voice clone.</li>
+      <li><a href="https://arxiv.org/abs/2609.31967">IndicFDB (Sep 2026)</a>: full-duplex voice-agent behaviours in Indian languages. Only the simplest form, barge-in, is implemented.</li>
+      <li><a href="https://arxiv.org/html/2606.25529">STEB</a>: expressiveness benchmark for speech translation (Chinese-English). Not implemented; a checklist for evaluating this app.</li>
+    </ul>
+  </section>
+</main>
+<script src="/static/app.js"></script>
+</body>
+</html>
